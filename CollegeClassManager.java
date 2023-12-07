@@ -2,74 +2,109 @@ package Final;
 
 import java.util.List;
 import java.util.Scanner;
-
+import java.util.Set;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Stack;
+import java.util.HashSet;
 
 public class CollegeClassManager {
-    private Map<String, List<String>> graph;
+    private static final String CIS = "CIS";
+    private static final String MAT = "MAT";
+    private static final String ENG = "ENG";
 
-    public CollegeClassManager() {
-        graph = new HashMap<>();
+    private Graph cisGraph;
+    private Graph matGraph;
+    private Graph engGraph;
+
+    public CollegeClassManager(Graph cisGraph, Graph matGraph, Graph engGraph) {
+        this.cisGraph = cisGraph;
+        this.matGraph = matGraph;
+        this.engGraph = engGraph;
     }
 
-    public void addEdge(String start, String end) {
-        if (!graph.containsKey(start)) {
-            graph.put(start, new ArrayList<>());
-        }
-        graph.get(start).add(end);
-    }
-
-    public List<String> recommendNextClass(String currentClass) {
-        if (!graph.containsKey(currentClass)) {
-            System.out.println("No recommendations available for this class.");
-            return new ArrayList<>();
-        }
-
+    public List<String> recommendNextClass(String currentClass, String courseType) {
         List<String> recommendations = new ArrayList<>();
-        Stack<String> stack = new Stack<>();
-        stack.push(currentClass);
-        Map<String, Boolean> visited = new HashMap<>();
+        Set<String> visited = new HashSet<>();
 
-        while (!stack.isEmpty()) {
-            String course = stack.pop();
-            visited.put(course, true);
-            if (graph.containsKey(course)) {
-                for (String neighbor : graph.get(course)) {
-                    if (!visited.containsKey(neighbor) || !visited.get(neighbor)) {
-                        stack.push(neighbor);
-                        recommendations.add(neighbor);
-                    }
-                }
-            }
+        switch (courseType.toUpperCase()) {
+            case CIS:
+                dfs(currentClass, visited, recommendations, cisGraph);
+                break;
+            case MAT:
+                dfs(currentClass, visited, recommendations, matGraph);
+                break;
+            case ENG:
+                dfs(currentClass, visited, recommendations, engGraph);
+                break;
+            default:
+                System.out.println("Invalid course type.");
         }
 
         return recommendations;
     }
 
+    private void dfs(String currentClass, Set<String> visited, List<String> recommendations, Graph graph) {
+        visited.add(currentClass);
+
+        List<String> neighbors = graph.getNeighbors(currentClass);
+
+        if (neighbors.isEmpty()) {
+            recommendations.add("COURSE COMPLETION");
+            return;
+        }
+
+        for (String neighbor : neighbors) {
+            if (!visited.contains(neighbor)) {
+                recommendations.add(neighbor);
+                dfs(neighbor, visited, recommendations, graph);
+            }
+        }
+    }
+
     public static void main(String[] args) {
-        CollegeClassManager classManager = new CollegeClassManager();
+        Graph cisGraph = new Graph();
+        Graph matGraph = new Graph();
+        Graph engGraph = new Graph();
+        CollegeClassManager classManager = new CollegeClassManager(cisGraph, matGraph, engGraph);
 
-        // Adding dependencies
-        classManager.addEdge("CIS254", "CIS255");
-        classManager.addEdge("CIS256", "CIS305");
-        classManager.addEdge("CIS150", "CIS254");
-        classManager.addEdge("CIS132", "CIS150");
-        classManager.addEdge("CIS305", "CIS380");
-        classManager.addEdge("CIS100", "CIS132");
-        classManager.addEdge("CIS255", "CIS256");
+        // Adding CIS dependencies
+        cisGraph.addEdge("CIS254", "CIS255");
+        cisGraph.addEdge("CIS256", "CIS305");
+        cisGraph.addEdge("CIS150", "CIS254");
+        cisGraph.addEdge("CIS132", "CIS150");
+        cisGraph.addEdge("CIS305", "CIS380");
+        cisGraph.addEdge("CIS100", "CIS132");
+        cisGraph.addEdge("CIS255", "CIS256");
 
-        // Get user input for the current class
+        // Adding MAT dependencies
+        matGraph.addEdge("MAT101", "MAT102");
+        matGraph.addEdge("MAT102", "MAT201");
+        matGraph.addEdge("MAT201", "MAT202");
+        matGraph.addEdge("MAT202", "MAT301");
+
+        // Adding ENG dependencies
+        engGraph.addEdge("ENG101", "ENG202");
+        engGraph.addEdge("ENG202", "ENG303");
+
+        // Get user input for CIS classes
         Scanner scanner = new Scanner(System.in);
-        System.out.print("Enter the current class: ");
-        String currentClass = scanner.nextLine();
+        System.out.print("Enter the current CIS class: ");
+        String currentCISClass = scanner.nextLine();
+        List<String> cisRecommendations = classManager.recommendNextClass(currentCISClass, CIS);
 
-        // Example usage
-        List<String> recommendations = classManager.recommendNextClass(currentClass);
+        // Get user input for MAT classes
+        System.out.print("Enter the current MAT class: ");
+        String currentMATClass = scanner.nextLine();
+        List<String> matRecommendations = classManager.recommendNextClass(currentMATClass, MAT);
 
-        System.out.println("Recommended Class Path for " + currentClass + ": " + recommendations);
+        // Get user input for ENG classes
+        System.out.print("Enter the current ENG class: ");
+        String currentENGClass = scanner.nextLine();
+        List<String> engRecommendations = classManager.recommendNextClass(currentENGClass, ENG);
+
+        // Print recommendations
+        System.out.println("\nRecommended CIS Classes to take after " + currentCISClass + ": " + cisRecommendations);
+        System.out.println("Recommended MAT Classes to take after " + currentMATClass + ": " + matRecommendations);
+        System.out.println("Recommended ENG Classes to take after " + currentENGClass + ": " + engRecommendations);
+ 
     }
 }
