@@ -1,9 +1,11 @@
 package Final;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
 import java.util.Set;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 
 public class CollegeClassManager {
@@ -84,6 +86,13 @@ public class CollegeClassManager {
         // Adding ENG dependencies
         engGraph.addEdge("ENG101", "ENG202");
         engGraph.addEdge("ENG202", "ENG303");
+        
+        // Program header
+        System.out.println("*****************************************");
+        System.out.println("*     College Course Road Map Helper    *");
+        System.out.println("*****************************************");
+        
+
 
         // Get user input for CIS classes
         Scanner scanner = new Scanner(System.in);
@@ -100,11 +109,57 @@ public class CollegeClassManager {
         System.out.print("Enter the current ENG class: ");
         String currentENGClass = scanner.nextLine();
         List<String> engRecommendations = classManager.recommendNextClass(currentENGClass, ENG);
+        
+        
+     // Program header
+        System.out.println("*****************************************");
+        System.out.println("*          Recommended Courses           *");
+        System.out.println("*****************************************");
 
         // Print recommendations
         System.out.println("\nRecommended CIS Classes to take after " + currentCISClass + ": " + cisRecommendations);
         System.out.println("Recommended MAT Classes to take after " + currentMATClass + ": " + matRecommendations);
         System.out.println("Recommended ENG Classes to take after " + currentENGClass + ": " + engRecommendations);
+        
+        
+        // Program header
+        System.out.println("*****************************************");
+        System.out.println("*          All Courses And Pre-reqs       *");
+        System.out.println("*****************************************");
+        
+        
+        System.out.println("\nAll CIS Classes with pre-reqs:");
+        displayAllClasses(cisGraph);
+        
+        System.out.println("\nAll MAT Classes with pre-reqs:");
+        displayAllClasses(matGraph);
+        
+        System.out.println("\nAll ENG Classes with pre-reqs:");
+        displayAllClasses(engGraph);
  
+    }
+    
+    private static void displayAllClasses(Graph graph) {
+        Set<String> allNodes = new HashSet<>();
+        
+        for (Map.Entry<String, List<String>> entry : graph.adjacencyList.entrySet()) {
+            allNodes.add(entry.getKey());
+            allNodes.addAll(entry.getValue());
+        }
+        
+        List<String> allClasses = new ArrayList<>(allNodes);
+        Collections.sort(allClasses);  // Sort classes in ascending order
+
+        for (String currentClass : allClasses) {
+            List<String> neighbors = graph.getNeighbors(currentClass);
+            System.out.print(currentClass + " -> ");
+            if (!neighbors.isEmpty()) {
+                System.out.print(neighbors.get(0));
+                for (int i = 1; i < neighbors.size(); i++) {
+                    System.out.print(", " + neighbors.get(i));
+                }
+            }
+            System.out.println();
+        }
     }
 }
